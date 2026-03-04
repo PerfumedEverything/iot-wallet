@@ -241,6 +241,8 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                     label: 'Continue',
                     onPressed: () async {
                       final seedPhrase = words.join(' ');
+
+                      
                       await WalletService.createWallet(seed: seedPhrase);
                       
                       navigatorKey.currentState?.pushNamedAndRemoveUntil(

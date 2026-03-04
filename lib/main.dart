@@ -9,6 +9,7 @@ import 'package:iot_wallet/screens/home/menu/edit_wallet_screen.dart';
 import 'package:iot_wallet/screens/home/receive/receive_screen.dart';
 import 'package:iot_wallet/screens/home/send/send_screen.dart';
 import 'package:iot_wallet/screens/login_screen.dart';
+import 'package:iot_wallet/screens/registration_screen.dart';
 import 'package:iot_wallet/screens/restore/restore_screen.dart';
 import 'package:iot_wallet/screens/restore/success_restore.dart';
 import 'package:iot_wallet/screens/splash_screen.dart';
@@ -126,6 +127,9 @@ class _BackHandlerNavigatorState extends State<BackHandlerNavigator> {
               break;
             case '/login':
               page = const LoginScreen();
+              break;
+            case '/registration':
+              page = const RegistrationScreen();
               break;
             case '/create':
               page = const CreateWalletScreen();

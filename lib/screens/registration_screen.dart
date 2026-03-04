@@ -1,4 +1,3 @@
-import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -11,20 +10,17 @@ import 'package:iot_wallet/widgets/universal_button.dart';
 import 'package:blockchain_utils/blockchain_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart';
-import 'package:blockchain_utils/blockchain_utils.dart';
-import 'package:bip39/bip39.dart' as bip39;
 import 'package:ton_dart/ton_dart.dart';
 import 'package:tonutils/tonutils.dart' as ton;
 
-class RestoreWalletScreen extends StatefulWidget {
-  const RestoreWalletScreen({super.key});
+class RegistrationScreen extends StatefulWidget {
+  const RegistrationScreen({super.key});
 
   @override
-  State<RestoreWalletScreen> createState() => _RestoreWalletScreenState();
+  State<RegistrationScreen> createState() => _RegistrationScreenState();
 }
 
-class _RestoreWalletScreenState extends State<RestoreWalletScreen> {
+class _RegistrationScreenState extends State<RegistrationScreen> {
   final TextEditingController controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
@@ -49,10 +45,6 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> {
 
   void validateInput(String value) {
     final words = value;
-        // .trim()
-        // .split(RegExp(r'\s+'))
-        // .where((e) => e.isNotEmpty)
-        // .toList();
 
     setState(() {
       hasError = false;
@@ -60,22 +52,24 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> {
     });
   }
 
-
   Future<String> importAccount(String mnemonic) async {
-  try {
-    final List<String> words = mnemonic.split(' ');
-    ton.KeyPair fastKeys = await FastMnemonic.toKeyPair(words);
-    var walletFast = ton.WalletContractV4R2.create(publicKey: fastKeys.publicKey);
-    return walletFast.address.toString(isBounceable: false);
-  } catch (e) {
-    setState(() {
-      hasError = true;
-      isValid = false;
-    });
-    rethrow;
-  }
-}
+    try {
+      final List<String> words = mnemonic.split(' ');
+      ton.KeyPair fastKeys = await FastMnemonic.toKeyPair(words);
+      print('=== FAST publicKey:     ${fastKeys.publicKey}');
+      var walletFast = ton.WalletContractV4R2.create(publicKey: fastKeys.publicKey);
 
+      print('=== FAST address:     ${walletFast.address.toString(isBounceable: false)}');
+
+      return walletFast.address.toString(isBounceable: false);
+    } catch (e) {
+      setState(() {
+        hasError = true;
+        isValid = false;
+      });
+      rethrow;
+    }
+  }
 
   static Future<ton.KeyPair> _genNewKey(List<String> mnemonics) {
     return FastMnemonic.toKeyPair(mnemonics);
@@ -87,21 +81,14 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> {
   }
 
   Future<String> importAddress(String mnemonic) async {
-    final seed = bip39.mnemonicToSeed(mnemonic);
-
-    final derived = await ED25519_HD_KEY.derivePath("m/44'/607'/0'", seed);
-
-    final privateKey = TonPrivateKey.fromBytes(derived.key);
-    final publicKey = privateKey.toPublicKey();
-    final pubBytes = Uint8List.fromList(publicKey.toBytes());
-
-    // Варіант A: ton_dart WalletV4
-    final walletA = WalletV4.create(
-      chain: TonChain.mainnet,
-      publicKey: pubBytes,
-    );
-    print('=== ton_dart WalletV4: ${walletA.address}');
-    return walletA.address.toFriendlyAddress(bounceable: false);
+     var seed = await compute(_genSeed, mnemonic);
+     final privateKey = TonPrivateKey.fromBytes(seed);
+     final publicKey = privateKey.toPublicKey();
+     final wallet =
+          WalletV4.create(chain: TonChain.mainnet, publicKey: publicKey.toBytes());
+      final address = wallet.address;
+      print(address);
+      return wallet.address.toString();
   }
 
   Future<bool> checkAddressValidity(String address) async {
@@ -123,30 +110,13 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> {
 
   void submit() async {
     final words = controller.text;
-        // .trim()
-        // .split(RegExp(r'\s+'))
-        // .where((e) => e.isNotEmpty)
-        // .toList();
-
-    if (!bip39.validateMnemonic(words)) {
-      print("Invalid from bip39");
-      if (!ton.Mnemonic.isValid(words.toString().split(' '))) {
-          print("Invalid from ton");
-          setState(() {
-            hasError = true;
-            isValid = false;
-          });
-          return;
-      }
-
-    }
 
     try {
-      var address = ton.Mnemonic.isValid(words.toString().split(' ')) ? await importAccount(words) : await importAddress(words);
+      var address = await importAccount(words);
       
       await WalletService.restoreWallet(seed: words, address: address);
       navigatorKey.currentState?.pushNamedAndRemoveUntil(
-        '/success_restore',
+        '/success_create',
         (route) => false,
       );
     } catch (e) {
@@ -156,17 +126,7 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> {
       });
       return;
     }
-
-    // if (!ton.Mnemonic.isValid(words.toString().split(' '))) {
-    //     setState(() {
-    //       hasError = true;
-    //       isValid = false;
-    //     });
-    //     return;
-    // }
-
   }
-
 
   Color get _borderColor {
     if (hasError) return Colors.red;
