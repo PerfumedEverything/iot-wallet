@@ -388,6 +388,7 @@ class _SeedPhraseBottomSheet extends StatefulWidget {
 
 class _SeedPhraseBottomSheetState extends State<_SeedPhraseBottomSheet> {
   late final List<String> words;
+  late final int wordCount;
   bool isHidden = true;
   OverlayEntry? _toastEntry;
 
@@ -396,9 +397,20 @@ class _SeedPhraseBottomSheetState extends State<_SeedPhraseBottomSheet> {
     super.initState();
     // Разбиваем seed фразу на слова
     words = widget.seed.split(' ');
-    // Если слов меньше 12,填充 пустыми
-    while (words.length < 12) {
-      words.add('');
+    
+    // Определяем количество слов: 12 или 24
+    if (words.length <= 12) {
+      wordCount = 12;
+      // Если слов меньше 12, добавляем пустые
+      while (words.length < 12) {
+        words.add('');
+      }
+    } else {
+      wordCount = 24;
+      // Если слов меньше 24, добавляем пустые
+      while (words.length < 24) {
+        words.add('');
+      }
     }
   }
 
@@ -515,23 +527,26 @@ class _SeedPhraseBottomSheetState extends State<_SeedPhraseBottomSheet> {
       
             const SizedBox(height: 8),
       
-            /// Grid
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 12,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 1.96,
+            /// Grid with scroll
+            SizedBox(
+              height: 400,
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: wordCount,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 1.96,
+                ),
+                itemBuilder: (context, index) {
+                  return WordTile(
+                    word: isHidden ? "******" : words[index],
+                    index: index + 1,
+                  );
+                },
               ),
-              itemBuilder: (context, index) {
-                return WordTile(
-                  word: isHidden ? "******" : words[index],
-                  index: index + 1,
-                );
-              },
             ),
       
             const SizedBox(height: 24),

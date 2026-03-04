@@ -1,3 +1,4 @@
+import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -5,6 +6,9 @@ import 'package:iot_wallet/main.dart';
 import 'package:iot_wallet/services/wallet_service.dart';
 import 'package:iot_wallet/widgets/back_button.dart';
 import 'package:iot_wallet/widgets/universal_button.dart';
+import 'package:blockchain_utils/blockchain_utils.dart';
+import 'package:bip39/bip39.dart' as bip39;
+import 'package:ton_dart/ton_dart.dart';
 
 class CreateWalletScreen extends StatefulWidget {
   const CreateWalletScreen({super.key});
@@ -15,15 +19,66 @@ class CreateWalletScreen extends StatefulWidget {
 
 class _CreateWalletScreenState extends State<CreateWalletScreen> {
 
-  final List<String> words = [
-    "vacuum","you","close",
-    "velvet","remember","gesture",
-    "donkey","damage","antique",
-    "cigar","cream","friend"
-  ];
+  late List<String> words;
+  late String mnemonic;
 
   bool isHidden = true;
   bool isCopied = false;
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _generateMnemonic();
+  }
+
+  void _generateMnemonic() {
+    // Генеруємо 12-слівну мнемоніку
+    mnemonic = bip39.generateMnemonic(strength: 128);
+    words = mnemonic.split(' ');
+  }
+
+  Future<String> _generateAddress(String mnemonic) async {
+    final seed = bip39.mnemonicToSeed(mnemonic);
+    final derived = await ED25519_HD_KEY.derivePath("m/44'/607'/0'", seed);
+    final privateKey = TonPrivateKey.fromBytes(derived.key);
+    final publicKey = privateKey.toPublicKey();
+    final pubBytes = Uint8List.fromList(publicKey.toBytes());
+
+    final walletA = WalletV4.create(
+      chain: TonChain.mainnet,
+      publicKey: pubBytes,
+    );
+    return walletA.address.toFriendlyAddress(bounceable: false);
+  }
+
+  Future<void> _submitCreate() async {
+    setState(() => isLoading = true);
+
+    try {
+      // Генеруємо адресу (для валідації)
+      String address = await _generateAddress(mnemonic);
+
+      await WalletService.restoreWallet(
+        seed: mnemonic,
+        address: address,
+      );
+      
+     
+      navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        '/success_create',
+        (route) => false,
+      );
+      // // Показуємо dialog для введення імені
+      // if (mounted) {
+      //   _showNameBottomSheet();
+      // }
+    } catch (e) {
+      print('Error creating wallet: $e');
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -239,17 +294,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                 /// CONTINUE BUTTON
                 UniversalButton(
                     label: 'Continue',
-                    onPressed: () async {
-                      final seedPhrase = words.join(' ');
-
-                      
-                      await WalletService.createWallet(seed: seedPhrase);
-                      
-                      navigatorKey.currentState?.pushNamedAndRemoveUntil(
-                        '/success_create',
-                        (route) => false,
-                      );
-                    },
+                    onPressed: isLoading ? null : _submitCreate,
                     width: double.infinity,
                   ),
                   SizedBox(height: 42,)
@@ -296,6 +341,180 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
           ]
             
         
+        ),
+      ),
+    );
+  }
+
+}
+
+class _NameWalletSheet extends StatefulWidget {
+  final TextEditingController controller;
+  final VoidCallback onCancel;
+  final VoidCallback onConfirm;
+
+  const _NameWalletSheet({
+    required this.controller,
+    required this.onCancel,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_NameWalletSheet> createState() => _NameWalletSheetState();
+}
+
+class _NameWalletSheetState extends State<_NameWalletSheet> {
+  late TextEditingController _controller;
+  bool _isValid = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller;
+    _isValid = _controller.text.trim().isNotEmpty;
+    _controller.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    setState(() {
+      _isValid = _controller.text.trim().isNotEmpty;
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onTextChanged);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 30),
+        decoration: const BoxDecoration(
+          color: Color(0xFF20233B),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Enter wallet name",
+              style: TextStyle(
+                fontFamily: "Poppins",
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+      
+            const SizedBox(height: 24),
+      
+            const Text(
+              "Wallet name",
+              style: TextStyle(
+                fontFamily: "Poppins",
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFFB5B8D6),
+              ),
+            ),
+      
+            const SizedBox(height: 10),
+      
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3A3D5E),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: TextField(
+                controller: _controller,
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(20),
+                ],
+                style: const TextStyle(
+                  fontFamily: "Poppins",
+                  color: Colors.white,
+                ),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: "My Wallet",
+                  hintStyle: TextStyle(
+                    color: Color(0xFF888AAA),
+                  ),
+                ),
+              ),
+            ),
+      
+            const SizedBox(height: 28),
+      
+            Row(
+              children: [
+                Expanded(
+                  child: _CancelButton(onTap: widget.onCancel),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: UniversalButton(
+                    label: "Create",
+                    onPressed: _isValid ? widget.onConfirm : null,
+                    width: double.infinity,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CancelButton extends StatefulWidget {
+  final VoidCallback onTap;
+
+  const _CancelButton({required this.onTap});
+
+  @override
+  State<_CancelButton> createState() => _CancelButtonState();
+}
+
+class _CancelButtonState extends State<_CancelButton> {
+  bool _isHovered = false;
+  bool _isTapped = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isTapped = true),
+        onTapUp: (_) => setState(() => _isTapped = false),
+        onTapCancel: () => setState(() => _isTapped = false),
+        onTap: widget.onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: (_isHovered || _isTapped)
+                ? const Color(0xFF3A3D5E).withAlpha(200)
+                : const Color(0xFF3A3D5E),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: const Center(
+            child: Text(
+              "Cancel",
+              style: TextStyle(
+                fontFamily: "Poppins",
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
         ),
       ),
     );
