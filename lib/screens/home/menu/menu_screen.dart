@@ -19,6 +19,7 @@ class _MenuScreenState extends State<MenuScreen> {
   bool _copied = false;
   List<Wallet> _wallets = [];
   Wallet? _activeWallet;
+  Map<String, String> _walletBalances = {}; // Зберігаємо баланс для кожного гаманця
 
   @override
   void initState() {
@@ -47,11 +48,31 @@ class _MenuScreenState extends State<MenuScreen> {
     reordered.removeWhere((w) => w.id == activeWallet.id);
     reordered.add(activeWallet); 
 
+    // Show cached balances immediately
+    final Map<String, String> cached = {};
+    for (final w in wallets) {
+      final c = WalletService.getCachedBalance(w.address);
+      if (c != null) cached[w.id] = c;
+    }
+
     setState(() {
       _wallets = reordered;
       _activeWallet = activeWallet;
-      selectedIndex = 0; 
+      selectedIndex = 0;
+      _walletBalances = cached;
     });
+
+    // Fetch fresh balances sequentially to avoid rate limit
+    for (final wallet in wallets) {
+      await _loadWalletBalance(wallet);
+    }
+  }
+
+  Future<void> _loadWalletBalance(Wallet wallet) async {
+    final balance = await WalletService.getBalance(wallet.address);
+    if (mounted) {
+      setState(() => _walletBalances[wallet.id] = balance);
+    }
   }
 
   Future<void> _copy(String address) async {
@@ -176,10 +197,12 @@ class _MenuScreenState extends State<MenuScreen> {
                       itemBuilder: (context, i) {
                         final wallet = _wallets[_wallets.length - 1 - i];
                         final selected = wallet.id == _activeWallet?.id;
+                        final balance = _walletBalances[wallet.id] ?? '0.00';
                         return GestureDetector(
                           onTap: () => _selectWallet(wallet),
                           child: _WalletTile(
                             wallet: wallet,
+                            balance: balance,
                             selected: selected,
                             onCopy: () => _copy(wallet.address),
                           ),
@@ -248,10 +271,16 @@ class _MenuScreenState extends State<MenuScreen> {
 
 class _WalletTile extends StatelessWidget {
   final Wallet wallet;
+  final String balance;
   final bool selected;
   final VoidCallback onCopy;
 
-  const _WalletTile({required this.wallet, required this.selected, required this.onCopy});
+  const _WalletTile({
+    required this.wallet,
+    required this.balance,
+    required this.selected,
+    required this.onCopy,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -284,7 +313,7 @@ class _WalletTile extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      "TON 0",
+                      "TON $balance",
                       style: const TextStyle(
                         fontFamily: "Poppins",
                         fontSize: 13,
@@ -311,7 +340,7 @@ class _WalletTile extends StatelessWidget {
                     CopyIcon(
                       size: 14,
                       onTap: onCopy,
-                      defaultColor: Color(0xFFB5B8D6),
+                      defaultColor: const Color(0xFFB5B8D6),
                     ),
                   ],
                 ),

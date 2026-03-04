@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/wallet.dart';
 
@@ -160,6 +161,38 @@ class WalletService {
     }
     
     return buffer.toString();
+  }
+
+  static String _balanceCacheKey(String address) => 'balance_cache_$address';
+
+  /// Returns last cached balance or null if none
+  static String? getCachedBalance(String address) {
+    return _prefs.getString(_balanceCacheKey(address));
+  }
+
+  /// Fetches live balance; on success saves to cache; on failure returns cache
+  static Future<String> getBalance(String address) async {
+    final url = Uri.parse(
+      'https://toncenter.com/api/v3/addressInformation?address=$address&use_v2=false',
+    );
+
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        final balanceStr = data['balance']?.toString() ?? '0';
+        final balance = double.parse(balanceStr) / 1e9;
+        final result = balance.toStringAsFixed(2);
+        await _prefs.setString(_balanceCacheKey(address), result);
+        return result;
+      } else {
+        print('Error fetching balance: ${response.statusCode}');
+        return getCachedBalance(address) ?? '0.00';
+      }
+    } catch (e) {
+      print('Error occurred while fetching balance: $e');
+      return getCachedBalance(address) ?? '0.00';
+    }
   }
 
   /// Очистить все данные (для тестирования)

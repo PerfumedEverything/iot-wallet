@@ -14,6 +14,7 @@ import 'package:iot_wallet/screens/restore/restore_screen.dart';
 import 'package:iot_wallet/screens/restore/success_restore.dart';
 import 'package:iot_wallet/screens/splash_screen.dart';
 import 'package:iot_wallet/services/wallet_service.dart';
+import 'package:iot_wallet/services/price_service.dart';
 import 'screens/welcome_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -44,6 +45,7 @@ void main() async {
   );
 
   await WalletService.init();
+  PriceService().startPriceTimer();
   runApp(const MyApp());
 }
 

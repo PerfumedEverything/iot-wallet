@@ -1,7 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:iot_wallet/main.dart';
+import 'package:iot_wallet/models/wallet.dart';
+import 'package:iot_wallet/services/price_service.dart';
+import 'package:iot_wallet/services/wallet_service.dart';
 import 'package:iot_wallet/widgets/back_button.dart';
 import 'package:iot_wallet/widgets/universal_button.dart';
 
@@ -19,6 +23,82 @@ class _SendScreenState extends State<SendScreen> {
   bool addressFocused = false;
   bool amountFocused = false;
   bool hasError = false;
+
+  Wallet? _activeWallet;
+  String _balance = '0.00';
+  String _usdValue = '\$0.00';
+  Timer? _balanceTimer;
+  final PriceService _priceService = PriceService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadActiveWallet();
+    _startBalanceTimer();
+    // Слухаємо глобальну ціну
+    _priceService.priceNotifier.addListener(_onPriceChanged);
+    // Оновлюємо USD відразу з поточною ціною
+    _updateUsdValue();
+  }
+
+  @override
+  void dispose() {
+    _balanceTimer?.cancel();
+    _priceService.priceNotifier.removeListener(_onPriceChanged);
+    addressController.dispose();
+    amountController.dispose();
+    super.dispose();
+  }
+
+  void _onPriceChanged() {
+    // Коли ціна змінилась, перераховуємо USD
+    _updateUsdValue();
+  }
+
+  void _startBalanceTimer() {
+    // Таймер тільки для оновлення балансу кожні 30 секунд
+    _balanceTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_activeWallet != null) {
+        _loadBalance(_activeWallet!.address);
+      }
+    });
+  }
+
+  Future<void> _loadActiveWallet() async {
+    final wallet = await WalletService.getActiveWallet();
+    setState(() => _activeWallet = wallet);
+    if (wallet != null) {
+      _loadBalance(wallet.address);
+    }
+  }
+
+  Future<void> _loadBalance(String address) async {
+    try {
+      final balance = await WalletService.getBalance(address);
+      setState(() {
+        _balance = balance;
+      });
+      _updateUsdValue();
+    } catch (e) {
+      print('Error loading balance: $e');
+    }
+  }
+
+  void _updateUsdValue() {
+    try {
+      final balanceNum = double.parse(_balance);
+      final priceNum = double.parse(_priceService.getPrice());
+      final usdValue = balanceNum * priceNum;
+      setState(() {
+        _usdValue = '\$${usdValue.toStringAsFixed(2)}';
+      });
+    } catch (e) {
+      print('Error calculating USD value: $e');
+      setState(() {
+        _usdValue = '\$0.00';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,9 +191,9 @@ class _SendScreenState extends State<SendScreen> {
                     child: Text.rich(
                       TextSpan(
                         children: [
-                          const TextSpan(
-                            text: "0 ",
-                            style: TextStyle(
+                          TextSpan(
+                            text: "$_balance ",
+                            style: const TextStyle(
                               fontSize: 38,
                               fontFamily: 'Poppins',
                               fontWeight: FontWeight.w700,
@@ -134,10 +214,10 @@ class _SendScreenState extends State<SendScreen> {
                     ),
                   ),
 
-                  const Center(
+                  Center(
                     child: Text(
-                      "\$0.00 USD",
-                      style: TextStyle(
+                      "$_usdValue USD",
+                      style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF696B82),
