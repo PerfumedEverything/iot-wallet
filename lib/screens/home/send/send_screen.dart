@@ -159,59 +159,20 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   void _showSuccessDialog() {
-    showDialog<void>(
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => PopScope(
-        canPop: false,
-        child: Dialog(
-          backgroundColor: const Color(0xFF2A2F47),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('🚀',
-                    style: TextStyle(fontSize: 56)),
-                const SizedBox(height: 20),
-                const Text(
-                  'Successful transaction',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Your transaction has been successfully sent. The recipient will receive your transfer shortly.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFFB5B8D6),
-                  ),
-                ),
-                const SizedBox(height: 28),
-                UniversalButton(
-                  label: 'Done',
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                    navigatorKey.currentState?.pop();
-                  },
-                  width: double.infinity,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (context) {
+        return _SuccessBottomSheet(
+          onDone: () {
+            Navigator.pop(context);
+            navigatorKey.currentState?.pop();
+          },
+        );
+      },
     );
   }
 
@@ -535,6 +496,62 @@ class _SendScreenState extends State<SendScreen> {
         ),
       ),
       child: child,
+    );
+  }
+}
+
+class _SuccessBottomSheet extends StatelessWidget {
+  final VoidCallback onDone;
+
+  const _SuccessBottomSheet({
+    required this.onDone,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 30),
+        decoration: const BoxDecoration(
+          color: Color(0xFF20233B),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset('assets/ic_rocket.png', width: 50, height: 55),
+            const SizedBox(height: 20),
+            const Text(
+              'Successful transaction',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Your transaction has been successfully sent. The recipient will receive your transfer shortly.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: Color(0xFFB5B8D6),
+              ),
+            ),
+            const SizedBox(height: 28),
+            UniversalButton(
+              label: 'Done',
+              onPressed: onDone,
+              width: double.infinity,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

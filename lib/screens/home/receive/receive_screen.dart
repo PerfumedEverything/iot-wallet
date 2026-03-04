@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:iot_wallet/main.dart';
 import 'package:iot_wallet/models/wallet.dart';
 import 'package:iot_wallet/services/wallet_service.dart';
@@ -146,16 +147,21 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                             borderRadius: BorderRadius.circular(22),
                           ),
                           clipBehavior: Clip.antiAlias,
-                          child: Image.asset(
-                            "assets/ic_qr.png",
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) {
-                              // якщо нема картинки — покажемо placeholder
-                              return const Center(
-                                child: Icon(Icons.qr_code_2, size: 72),
-                              );
-                            },
-                          ),
+                          child: _activeWallet != null
+                              ? QrImageView(
+                                  data: _activeWallet!.address,
+                                  version: QrVersions.auto,
+                                  size: 178,
+                                  backgroundColor: Colors.white,
+                                  errorStateBuilder: (cxt, err) {
+                                    return Center(
+                                      child: Icon(Icons.qr_code_2, size: 72),
+                                    );
+                                  },
+                                )
+                              : const Center(
+                                  child: Icon(Icons.qr_code_2, size: 72),
+                                ),
                         ),
 
                         const SizedBox(height: 18),

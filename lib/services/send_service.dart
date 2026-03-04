@@ -26,7 +26,7 @@ class SendService {
     final amount = double.tryParse(amountStr.trim().replaceAll(',', '.'));
     if (amount == null || amount <= 0) return 'Invalid amount';
     if (amount < 0.01) return 'Minimum is 0.01 TON';
-    if (amount > balance) return 'Insufficient balance';
+    if (amount > balance) return 'Insufficient balance to complete the transaction. Add funds to your balance and try again.';
     return null;
   }
 
@@ -135,7 +135,7 @@ class SendService {
       print('[Send] fee=$fee TON  balance=$balance TON  amount=$amountTon TON');
 
       if (amountTon + fee > balance) {
-        return 'Insufficient balance to cover amount + fee ($fee TON)';
+        return 'Insufficient balance to complete the transaction. Add funds to your balance and try again.';
       }
 
       // — wait before broadcast to recover from API rate limit —
