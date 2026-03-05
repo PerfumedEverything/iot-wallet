@@ -25,7 +25,7 @@ class TransactionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isReceive = transaction.isReceive;
     final amountColor =
-        isReceive ? const Color(0xFF47D653) : const Color(0xFFFF4B4B);
+        isReceive ? const Color(0xFF47D653) : const Color(0xFFF82E2E);
     final iconAsset =
         isReceive ? 'assets/ic_receive.svg' : 'assets/ic_send.svg';
     final formattedDate =
@@ -36,16 +36,16 @@ class TransactionCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF2A2F47),
+          color: const Color(0xFF373959),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 41,
+              height: 41,
               decoration: const BoxDecoration(
-                color: Color(0xFF363C58),
+                color: Color(0xFF51536F),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -69,8 +69,8 @@ class TransactionCard extends StatelessWidget {
                     transaction.description,
                     style: const TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
                       color: Colors.white,
                     ),
                   ),
@@ -79,9 +79,9 @@ class TransactionCard extends StatelessWidget {
                     formattedDate,
                     style: const TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFF8A92B2),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFFAAAAAA),
                     ),
                   ),
                 ],
@@ -94,8 +94,8 @@ class TransactionCard extends StatelessWidget {
                   transaction.tonAmountFormatted,
                   style: TextStyle(
                     fontFamily: 'Poppins',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                     color: amountColor,
                   ),
                 ),
@@ -104,9 +104,9 @@ class TransactionCard extends StatelessWidget {
                   transaction.usdAmountFormatted,
                   style: const TextStyle(
                     fontFamily: 'Poppins',
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.w400,
-                    color: Color(0xFF696B82),
+                    color: Color(0xFFAAAAAA),
                   ),
                 ),
               ],

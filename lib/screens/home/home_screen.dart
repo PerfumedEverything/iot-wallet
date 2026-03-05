@@ -319,46 +319,45 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // ---- scrollable transactions area ----
               Expanded(
-                child: _isLoadingTx
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFF6D8BFF)),
-                        ),
-                      )
-                    : _transactions.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Image.asset('assets/ic_history.png',
-                                    width: 77, height: 77),
-                                const SizedBox(height: 7),
-                                const Text(
-                                  'History not found',
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFFCECECE),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : ListView.separated(
-                            padding: EdgeInsets.only(
-                              left: 24,
-                              right: 24,
-                              bottom: bottomPad,
-                            ),
-                            itemCount: _transactions.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (context, index) =>
-                                TransactionCard(
-                                    transaction: _transactions[index]),
+                child: Padding(
+                  padding: EdgeInsets.only(left: 24, right: 24, bottom: bottomPad),
+                  child: _isLoadingTx
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFF6D8BFF)),
                           ),
+                        )
+                      : _transactions.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Image.asset('assets/ic_history.png',
+                                      width: 77, height: 77),
+                                  const SizedBox(height: 7),
+                                  const Text(
+                                    'History not found',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFFCECECE),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.separated(
+                              padding: EdgeInsets.zero,
+                              itemCount: _transactions.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (context, index) =>
+                                  TransactionCard(
+                                      transaction: _transactions[index]),
+                            ),
+                ),
               ),
             ],
           ),

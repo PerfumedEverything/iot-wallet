@@ -219,66 +219,65 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
                 // ---- scrollable transactions area ----
                 Expanded(
-                  child: _isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                Color(0xFF6D8BFF)),
-                          ),
-                        )
-                      : _transactions.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Image.asset('assets/ic_history.png',
-                                      width: 90, height: 90),
-                                  const SizedBox(height: 7),
-                                  const Text(
-                                    'History not found',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Color(0xFFCECECE),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : ListView(
-                              padding: EdgeInsets.only(
-                                left: 24,
-                                right: 24,
-                                bottom: bottomPad,
-                              ),
-                              children: [
-                                for (final group
-                                    in _groupByDate(_transactions)) ...[
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.only(bottom: 12),
-                                    child: Text(
-                                      group.label,
-                                      style: const TextStyle(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 24, right: 24, bottom: bottomPad),
+                    child: _isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF6D8BFF)),
+                            ),
+                          )
+                        : _transactions.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Image.asset('assets/ic_history.png',
+                                        width: 90, height: 90),
+                                    const SizedBox(height: 7),
+                                    const Text(
+                                      'History not found',
+                                      style: TextStyle(
                                         fontFamily: 'Poppins',
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xFFCECECE),
                                       ),
                                     ),
-                                  ),
-                                  ...group.transactions.map(
-                                    (tx) => Padding(
+                                  ],
+                                ),
+                              )
+                            : ListView(
+                                padding: EdgeInsets.zero,
+                                children: [
+                                  for (final group
+                                      in _groupByDate(_transactions)) ...[
+                                    Padding(
                                       padding:
                                           const EdgeInsets.only(bottom: 12),
-                                      child: TransactionCard(transaction: tx),
+                                      child: Text(
+                                        group.label,
+                                        style: const TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
+                                    ...group.transactions.map(
+                                      (tx) => Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 12),
+                                        child: TransactionCard(transaction: tx),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                  ],
                                 ],
-                              ],
-                            ),
+                              ),
+                  ),
                 ),
               ],
             ),
