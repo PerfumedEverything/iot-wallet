@@ -182,17 +182,39 @@ class WalletService {
         final Map<String, dynamic> data = jsonDecode(response.body);
         final balanceStr = data['balance']?.toString() ?? '0';
         final balance = double.parse(balanceStr) / 1e9;
-        final result = balance.toStringAsFixed(2);
+        final result = _formatBalance(balance);
         await _prefs.setString(_balanceCacheKey(address), result);
         return result;
       } else {
         print('Error fetching balance: ${response.statusCode}');
-        return getCachedBalance(address) ?? '0.00';
+        final cached = getCachedBalance(address);
+        return cached != null ? _ensureDecimalFormat(cached) : '0.00';
       }
     } catch (e) {
       print('Error occurred while fetching balance: $e');
-      return getCachedBalance(address) ?? '0.00';
+      final cached = getCachedBalance(address);
+      return cached != null ? _ensureDecimalFormat(cached) : '0.00';
     }
+  }
+
+  /// Format balance to always have 2 decimal places
+  static String _formatBalance(double balance) {
+    final result = balance.toStringAsFixed(2);
+    return _ensureDecimalFormat(result);
+  }
+
+  /// Ensure value has .XX format, never just integer
+  static String _ensureDecimalFormat(String value) {
+    if (!value.contains('.')) {
+      return '$value.00';
+    }
+    final parts = value.split('.');
+    if (parts.length == 2) {
+      if (parts[1].length == 1) {
+        return '${parts[0]}.${parts[1]}0';
+      }
+    }
+    return value;
   }
 
   /// Очистить все данные (для тестирования)
