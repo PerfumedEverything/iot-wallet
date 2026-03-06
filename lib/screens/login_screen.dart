@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:iot_wallet/main.dart';
 import 'package:iot_wallet/widgets/transperent_button.dart';
+import 'package:iot_wallet/widgets/back_button.dart';
 import '../widgets/universal_button.dart';
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+  final bool fromMenu;
+
+  const LoginScreen({super.key, this.fromMenu = false});
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +49,26 @@ class LoginScreen extends StatelessWidget {
                   child: Image.asset( 
                     'assets/ic_line.png',
                     width: 170,
+                  ),
+                ),
+
+                if (fromMenu)
+                Positioned(
+                  top: 20,
+                  left: 20,
+                  child: BackSvgButton(
+                    asset: 'assets/ic_back.svg',
+                    size: 27,
+                    color: Colors.white,
+                    hoverColor: const Color(0xFF3A6DF7),
+                    tapColor: const Color(0xFF3A6DF7),
+                    onTap: () {
+                      print('[LoginScreen] back tapped');
+                      print('[LoginScreen] navigatorKey.currentState=${navigatorKey.currentState}');
+                      print('[LoginScreen] canPop=${navigatorKey.currentState?.canPop()}');
+                      navigatorKey.currentState?.pop();
+                      print('[LoginScreen] pop() called');
+                    },
                   ),
                 ),
 

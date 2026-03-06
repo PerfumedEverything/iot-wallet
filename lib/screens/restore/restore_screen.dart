@@ -331,7 +331,7 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> {
                       ),
                       decoration: const InputDecoration(
                         hintText:
-                            "Type in your recovery phrase of 12 words in the correct order.",
+                            "Type in your recovery phrase of 12 or 24 words in the correct order.",
                         hintStyle: TextStyle(
                           color: Color(0xFF888992),
                           fontFamily: 'Poppins',

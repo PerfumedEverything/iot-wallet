@@ -216,9 +216,9 @@ class _MenuScreenState extends State<MenuScreen> {
                 UniversalButton(
                   label: 'Add a wallet',
                   onPressed: () {
-                    navigatorKey.currentState?.pushNamedAndRemoveUntil(
+                    navigatorKey.currentState?.pushNamed(
                       '/welcome',
-                      (route) => true,
+                      arguments: true,
                     );
                   },
                   width: double.infinity,

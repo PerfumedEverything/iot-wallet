@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../widgets/universal_button.dart';
-import 'login_screen.dart';
 import 'package:flutter/gestures.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:iot_wallet/main.dart';
+import '../widgets/universal_button.dart';
+import '../widgets/back_button.dart';
 
 class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key});
+  final bool fromMenu;
+
+  const WelcomeScreen({super.key, this.fromMenu = false});
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +40,26 @@ class WelcomeScreen extends StatelessWidget {
                         stops: [0.0, 1.0],
                       ),
                     ),
+                  ),
+                ),
+
+                if (fromMenu)
+                Positioned(
+                  top: 20,
+                  left: 20,
+                  child: BackSvgButton(
+                    asset: 'assets/ic_back.svg',
+                    size: 27,
+                    color: Colors.white,
+                    hoverColor: const Color(0xFF3A6DF7),
+                    tapColor: const Color(0xFF3A6DF7),
+                    onTap: () {
+                      print('[WelcomeScreen] back tapped');
+                      print('[WelcomeScreen] navigatorKey.currentState=${navigatorKey.currentState}');
+                      print('[WelcomeScreen] canPop=${navigatorKey.currentState?.canPop()}');
+                      navigatorKey.currentState?.pop();
+                      print('[WelcomeScreen] pop() called');
+                    },
                   ),
                 ),
               Padding(
@@ -170,11 +193,11 @@ class WelcomeScreen extends StatelessWidget {
                   UniversalButton(
                     label: 'Get started',
                     onPressed: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
+                      if (fromMenu) {
+                        navigatorKey.currentState?.pushNamed('/login', arguments: true);
+                        return;
+                      }
+                      navigatorKey.currentState?.pushReplacementNamed('/login');
                     },
                     width: double.infinity,
                   ),

@@ -120,15 +120,16 @@ class _BackHandlerNavigatorState extends State<BackHandlerNavigator> {
         initialRoute: '/splash',
         onGenerateRoute: (RouteSettings settings) {
           Widget page;
+          final fromMenu = settings.arguments as bool? ?? false;
           switch (settings.name) {
             case '/splash':
               page = const SplashScreen();
               break;
             case '/welcome':
-              page = const WelcomeScreen();
+              page = WelcomeScreen(fromMenu: fromMenu);
               break;
             case '/login':
-              page = const LoginScreen();
+              page = LoginScreen(fromMenu: fromMenu);
               break;
             case '/registration':
               page = const RegistrationScreen();

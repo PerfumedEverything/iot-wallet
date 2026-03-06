@@ -77,6 +77,11 @@ class _SendScreenState extends State<SendScreen> {
     } catch (_) {}
   }
 
+  String get _displayBalance {
+    final val = double.tryParse(_balance) ?? 0.0;
+    return val == 0.0 ? '0' : _balance;
+  }
+
   void _updateUsdValue() {
     try {
       final b = double.parse(_balance);
@@ -256,7 +261,7 @@ class _SendScreenState extends State<SendScreen> {
                   Center(
                     child: Text.rich(TextSpan(children: [
                       TextSpan(
-                        text: '$_balance ',
+                        text: '$_displayBalance ',
                         style: const TextStyle(
                           fontSize: 38,
                           fontFamily: 'Poppins',

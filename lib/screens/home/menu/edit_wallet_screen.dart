@@ -531,6 +531,7 @@ class _SeedPhraseBottomSheetState extends State<_SeedPhraseBottomSheet> {
             SizedBox(
               height: 400,
               child: GridView.builder(
+                padding: const EdgeInsets.only(bottom: 16),
                 shrinkWrap: true,
                 physics: const AlwaysScrollableScrollPhysics(),
                 itemCount: wordCount,
