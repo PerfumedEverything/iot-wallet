@@ -205,7 +205,7 @@ class WelcomeScreen extends StatelessWidget {
                   PrivacyText(
                     onPrivacyTap: () {
                       try {
-                        launchUrl(Uri.parse('https://telegra.ph/Privacy-Policy-02-28-101'));
+                        launchUrl(Uri.parse('https://telegra.ph/Privacy-Policy-03-05-101'));
                       } catch (e) {
                         print("Could not launch URL: $e");
                       }

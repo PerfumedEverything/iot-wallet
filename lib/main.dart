@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iot_wallet/screens/create/create_screen.dart';
@@ -15,6 +16,8 @@ import 'package:iot_wallet/screens/restore/success_restore.dart';
 import 'package:iot_wallet/screens/splash_screen.dart';
 import 'package:iot_wallet/services/wallet_service.dart';
 import 'package:iot_wallet/services/price_service.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/welcome_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -36,6 +39,20 @@ Future<void> _moveToBackground() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  final config = PostHogConfig(
+    'phc_GJAepTnJLXjwraTO3ZpAxHahld4H3m81IaZW6NmvTDS',
+  );
+
+  config.debug = true;
+  config.captureApplicationLifecycleEvents = true;
+  config.host = 'https://eu.i.posthog.com/';
+
+  await Posthog().setup(config);
+
+  final uid = await getOrCreateUserId();
+
+  await Posthog().identify(userId: uid);
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       systemNavigationBarColor: Color(0xFF1E2235), 
@@ -47,6 +64,21 @@ void main() async {
   await WalletService.init();
   PriceService().startPriceTimer();
   runApp(const MyApp());
+}
+
+Future<String> getOrCreateUserId() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  String? uid = prefs.getString('posthog_uid');
+
+  if (uid != null) return uid;
+
+  final random = Random();
+  uid = List.generate(32, (_) => random.nextInt(16).toRadixString(16)).join();
+
+  await prefs.setString('posthog_uid', uid);
+
+  return uid;
 }
 
 class MyApp extends StatelessWidget {

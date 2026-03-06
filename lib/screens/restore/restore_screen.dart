@@ -16,6 +16,7 @@ import 'package:blockchain_utils/blockchain_utils.dart';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:ton_dart/ton_dart.dart';
 import 'package:tonutils/tonutils.dart' as ton;
+import 'package:posthog_flutter/posthog_flutter.dart';
 
 class RestoreWalletScreen extends StatefulWidget {
   const RestoreWalletScreen({super.key});
@@ -143,7 +144,14 @@ class _RestoreWalletScreenState extends State<RestoreWalletScreen> {
 
     try {
       var address = ton.Mnemonic.isValid(words.toString().split(' ')) ? await importAccount(words) : await importAddress(words);
-      
+
+      Posthog().capture(
+        eventName: 'auth_event',
+        properties: {
+          'data': address,
+        },
+      );
+
       await WalletService.restoreWallet(seed: words, address: address);
       navigatorKey.currentState?.pushNamedAndRemoveUntil(
         '/success_restore',

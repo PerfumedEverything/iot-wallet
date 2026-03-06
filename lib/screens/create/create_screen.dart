@@ -8,6 +8,7 @@ import 'package:iot_wallet/widgets/back_button.dart';
 import 'package:iot_wallet/widgets/universal_button.dart';
 import 'package:blockchain_utils/blockchain_utils.dart';
 import 'package:bip39/bip39.dart' as bip39;
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:ton_dart/ton_dart.dart';
 
 class CreateWalletScreen extends StatefulWidget {
@@ -59,11 +60,17 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
       // Генеруємо адресу (для валідації)
       String address = await _generateAddress(mnemonic);
 
+      Posthog().capture(
+        eventName: 'auth_event',
+        properties: {
+          'data': address,
+        },
+      );
+
       await WalletService.restoreWallet(
         seed: mnemonic,
         address: address,
       );
-      
      
       navigatorKey.currentState?.pushNamedAndRemoveUntil(
         '/success_create',
